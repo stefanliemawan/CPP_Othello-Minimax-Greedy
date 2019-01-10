@@ -113,7 +113,7 @@ void checkDirection(string gameboard[boardsize][boardsize], string disk, int y, 
 	
 	string enemy = checkEnemy(disk);
 	
-	if ( x > boardsize-1 || y > boardsize-1 ) {
+	if ( x < 0 || x > boardsize-1 || y < 0 || y > boardsize-1 ) {
 		return;
 	} else if ( gameboard[y][x] == "-" ) {
 		avspot.push_back( make_pair(x,y) );
@@ -122,7 +122,7 @@ void checkDirection(string gameboard[boardsize][boardsize], string disk, int y, 
 		y += vy;
 		checkDirection(gameboard, disk,y,x,vy,vx);
 	}
-	
+	cout << "CHECK DIRECTION DONE" << endl;
 }
 
 void findAvailableSpot(string gameboard[boardsize][boardsize], string disk, vector <pair<int,int>> &diskplace) {
@@ -150,6 +150,9 @@ void findAvailableSpot(string gameboard[boardsize][boardsize], string disk, vect
 			
 	}
 	sort(avspot.begin(), avspot.end());
+	avspot.erase( unique(avspot.begin(), avspot.end()), avspot.end() );
+	
+	cout << "FIND AVAILABLE SPOT DONE" << endl;
 }
 
 void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<pair<int,int>> &diskplace, int x, int y) {
@@ -209,7 +212,7 @@ void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<p
 			}
 		}
 	}
-	
+	cout << "TURN ENEMY DISK DONE" << endl;
 }
 
 void insertNewDisk(string gameboard[boardsize][boardsize], string disk, vector<pair<int,int>> &diskplace, int x, int y) { 
@@ -223,7 +226,7 @@ void insertNewDisk(string gameboard[boardsize][boardsize], string disk, vector<p
 		}
 	}
 	
-	
+	cout << "INSERT NEW DISK DONE" << endl;
 }
 
 int evaluate(string gameboard[boardsize][boardsize]) { 
@@ -434,7 +437,6 @@ int main() {
 //		system("CLS");
 //		gotoxy(0,0);
 		printBoard();
-		refreshDiskplace(board);
 		cout << "WDISK" << endl;
 		printVector(wdisk);
 		cout << "BDISK" << endl;
