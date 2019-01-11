@@ -15,14 +15,12 @@ using namespace std;
 	const int boardsize = 8;
 	string board[boardsize][boardsize];
 	
-	vector <pair<int,int>> avspot;
 	vector <pair<int,int>> bdisk;
 	vector <pair<int,int>> wdisk;
 	
 	int bestscore;
 	int bestx;
 	int besty;
-	int asd = 0;
 
 void gotoxy(short x, short y) {
   COORD coord = { x, y };  
@@ -50,11 +48,11 @@ void initializeBoard() {
 	
 }
 
-void printBoard() {
+void printBoard(string gameboard[boardsize][boardsize]) {
 	cout << endl << endl;
 	for (int i=0; i<boardsize; i++) {
 		for (int j=0; j<boardsize; j++) {
-			cout << setw(5) << board[i][j] << " ";
+			cout << setw(5) << gameboard[i][j] << " ";
 		}
 		cout << endl << endl;
 	}
@@ -81,7 +79,7 @@ string checkEnemy(string disk) {
 
 void cloneBoard(string newboard[boardsize][boardsize], string gameboard[boardsize][boardsize]) {
 	
-//	memcpy( newboard, gameboard, sizeof(gameboard) );
+//	memcpy( newboard, gameboard, boardsize * boardsize * sizeof(gameboard) );
 
 	for (int i=0; i<boardsize; i++) {
 		for (int j=0; j<boardsize; j++) {
@@ -109,7 +107,7 @@ void refreshDiskplace(string gameboard[boardsize][boardsize]) {
 	
 }
 
-void checkDirection(string gameboard[boardsize][boardsize], string disk, int y, int x, int vy, int vx) {
+void checkDirection(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, int y, int x, int vy, int vx) {
 	
 	string enemy = checkEnemy(disk);
 	
@@ -120,39 +118,39 @@ void checkDirection(string gameboard[boardsize][boardsize], string disk, int y, 
 	} else if ( gameboard[y][x] == enemy ){
 		x += vx;
 		y += vy;
-		checkDirection(gameboard, disk,y,x,vy,vx);
+		checkDirection(gameboard, avspot, disk,y,x,vy,vx);
 	}
-	cout << "CHECK DIRECTION DONE" << endl;
+//	cout << "CHECK DIRECTION DONE" << endl;
 }
 
-void findAvailableSpot(string gameboard[boardsize][boardsize], string disk, vector <pair<int,int>> &diskplace) {
+void findAvailableSpot(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector <pair<int,int>> &diskplace) {
 	
 	avspot.clear();
 	refreshDiskplace(gameboard);
 	string enemy = checkEnemy(disk);
 	
 	for (auto i=diskplace.begin(); i!=diskplace.end(); i++) { // if corner
-		if ( i->second-1 > 0 && gameboard[i->second-1][i->first] == enemy ) checkDirection(gameboard, disk, i->second-1, i->first, -1, 0); //NORTH
+		if ( i->second-1 > 0 && gameboard[i->second-1][i->first] == enemy ) checkDirection(gameboard, avspot, disk, i->second-1, i->first, -1, 0); //NORTH
 		
-		if ( i->first+1 < boardsize && gameboard[i->second][i->first+1] == enemy ) checkDirection(gameboard,disk, i->second, i->first+1, 0, 1); //EAST
+		if ( i->first+1 < boardsize && gameboard[i->second][i->first+1] == enemy ) checkDirection(gameboard, avspot, disk, i->second, i->first+1, 0, 1); //EAST
 		
-		if ( i->second+1 < boardsize && gameboard[i->second+1][i->first] == enemy ) checkDirection(gameboard,disk, i->second+1, i->first, 1, 0); //SOUTH
+		if ( i->second+1 < boardsize && gameboard[i->second+1][i->first] == enemy ) checkDirection(gameboard, avspot, disk, i->second+1, i->first, 1, 0); //SOUTH
 		
-		if ( i->first-1 > 0 && gameboard[i->second][i->first-1] == enemy ) checkDirection(gameboard,disk, i->second, i->first-1, 0, -1); //WEST
+		if ( i->first-1 > 0 && gameboard[i->second][i->first-1] == enemy ) checkDirection(gameboard, avspot, disk, i->second, i->first-1, 0, -1); //WEST
 		
-		if ( i->first-1 > 0 && i->second-1 > 0 && gameboard[i->second-1][i->first-1] == enemy ) checkDirection(gameboard,disk, i->second-1, i->first-1, -1, -1); //NORTHWEST
+		if ( i->first-1 > 0 && i->second-1 > 0 && gameboard[i->second-1][i->first-1] == enemy ) checkDirection(gameboard, avspot, disk, i->second-1, i->first-1, -1, -1); //NORTHWEST
 			
-		if ( i->second-1 > 0 && i->first+1 < boardsize && gameboard[i->second-1][i->first+1] == enemy ) checkDirection(gameboard,disk, i->second-1, i->first+1, -1, 1); //NORTHEAST
+		if ( i->second-1 > 0 && i->first+1 < boardsize && gameboard[i->second-1][i->first+1] == enemy ) checkDirection(gameboard, avspot, disk, i->second-1, i->first+1, -1, 1); //NORTHEAST
 		
-		if ( i->second+1 < boardsize && i->first+1 < boardsize && gameboard[i->second+1][i->first+1] == enemy ) checkDirection(gameboard,disk, i->second+1, i->first+1, 1, 1); //SOUTHEAST
+		if ( i->second+1 < boardsize && i->first+1 < boardsize && gameboard[i->second+1][i->first+1] == enemy ) checkDirection(gameboard, avspot, disk, i->second+1, i->first+1, 1, 1); //SOUTHEAST
 			
-		if ( i->second+1 < boardsize && i->first-1 > 0 && gameboard[i->second+1][i->first-1] == enemy ) checkDirection(gameboard,disk, i->second+1, i->first-1, 1, -1); //SOUTHWEST
+		if ( i->second+1 < boardsize && i->first-1 > 0 && gameboard[i->second+1][i->first-1] == enemy ) checkDirection(gameboard, avspot, disk, i->second+1, i->first-1, 1, -1); //SOUTHWEST
 			
 	}
 	sort(avspot.begin(), avspot.end());
 	avspot.erase( unique(avspot.begin(), avspot.end()), avspot.end() );
 	
-	cout << "FIND AVAILABLE SPOT DONE" << endl;
+//	cout << "FIND AVAILABLE SPOT DONE" << endl;
 }
 
 void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<pair<int,int>> &diskplace, int x, int y) {
@@ -212,21 +210,21 @@ void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<p
 			}
 		}
 	}
-	cout << "TURN ENEMY DISK DONE" << endl;
+//	cout << "TURN ENEMY DISK DONE" << endl;
 }
 
-void insertNewDisk(string gameboard[boardsize][boardsize], string disk, vector<pair<int,int>> &diskplace, int x, int y) { 
+void insertNewDisk(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace, int x, int y) { 
 	
 	string enemy = checkEnemy(disk);
 	
 	for (auto i=avspot.begin(); i!=avspot.end(); i++) {
-		if (i->first == x && i->second == y) {
+		if ( i->first == x && i->second == y ) {
 			gameboard[y][x] =  disk;
 			turnEnemyDisk(gameboard, disk, diskplace, x, y);
 		}
 	}
 	
-	cout << "INSERT NEW DISK DONE" << endl;
+//	cout << "INSERT NEW DISK DONE" << endl;
 }
 
 int evaluate(string gameboard[boardsize][boardsize]) { 
@@ -353,9 +351,11 @@ int evaluate(string gameboard[boardsize][boardsize]) {
 	// MOBILITY
 	double mobility; 
 	
-	findAvailableSpot(gameboard, "B", bdisk);
+	vector<pair<int,int>> avspot;
+	
+	findAvailableSpot(gameboard, avspot, "B", bdisk);
 	blacktiles = avspot.size();
-	findAvailableSpot(gameboard, "W", wdisk);
+	findAvailableSpot(gameboard, avspot, "W", wdisk);
 	whitetiles = avspot.size();
 	
 	if ( blacktiles > whitetiles )
@@ -368,57 +368,67 @@ int evaluate(string gameboard[boardsize][boardsize]) {
 	return score;
 }
 
-int minimax(string gameboard[boardsize][boardsize], int depth, string disk) { // NOT CHECKED
+int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, int depth, string disk) { // STOPPED WORKING
 	
-	if ( depth == 0 ) return evaluate(gameboard); // nyantol di depth == 1
+	if ( depth == 0 ) return evaluate(gameboard);
+	
 	else {
 		
 		if ( disk == "B" ) {
-			
+			//max
 			bestscore = numeric_limits<int>::min();
-			findAvailableSpot(gameboard, disk, bdisk);
-			
-			for (auto i=avspot.begin(); i!=avspot.end(); i++) {
+			findAvailableSpot(gameboard, avspot, "B", bdisk);
+			for (int i=0; i<avspot.size(); i++) {
 				
 				string newboard[boardsize][boardsize];
 				cloneBoard(newboard, gameboard);
-				insertNewDisk(newboard, "B", bdisk, i->first, i->second);
-				int v = minimax(newboard, depth-1, "W");
+				vector <pair<int,int>> newavspot;
+				findAvailableSpot(newboard, newavspot, "B", bdisk);
+				
+				auto it = avspot.begin() + i;
+				
+				insertNewDisk(newboard, newavspot, "B", bdisk, it->first, it->second);
+				
+				int v = minimax(newboard, newavspot, depth-1, "W");
 				
 				if ( v > bestscore ) {
 					bestscore = v;
-					bestx = i->first;
-					besty = i->second;
+					bestx = it->first;
+					besty = it->second;
 				}
-		
+				
 			}
-			
 			return bestscore;
 		}
 		else if ( disk == "W" ) {
-			
+			//min
 			bestscore = numeric_limits<int>::max();
-			findAvailableSpot(gameboard, disk, wdisk);
-			
-			for (auto i=avspot.begin(); i!=avspot.end(); i++) {
+			findAvailableSpot(gameboard, avspot, "W", wdisk);
+			for (int i=0; i<avspot.size(); i++) {
 				
 				string newboard[boardsize][boardsize];
 				cloneBoard(newboard, gameboard);
-				insertNewDisk(newboard, "W", wdisk, i->first, i->second);
-				int v = minimax(newboard, depth-1, "B");
+				vector <pair<int,int>> newavspot;
+				findAvailableSpot(newboard, newavspot, "W", wdisk);
+				
+				auto it = avspot.begin() + i;
+				
+				insertNewDisk(newboard, newavspot, "W", wdisk, it->first, it->second);
+				
+				int v = minimax(newboard, newavspot, depth-1, "B");
 				
 				if ( v < bestscore ) {
 					bestscore = v;
-					bestx = i->first;
-					besty = i->second;
+					bestx = it->first;
+					besty = it->second;
 				}
 				
 			}
-			
 			return bestscore;
 		}
 		
 	}
+
 }
 
 void greedyTurn() {
@@ -427,6 +437,7 @@ void greedyTurn() {
 
 int main() {
 	
+	vector <pair<int,int>> availspot;
 	int count = 1;
 	int x,y;
 	
@@ -436,44 +447,64 @@ int main() {
 		
 //		system("CLS");
 //		gotoxy(0,0);
-		printBoard();
-		cout << "WDISK" << endl;
-		printVector(wdisk);
-		cout << "BDISK" << endl;
-		printVector(bdisk);
+		
+		
+//		cout << "WDISK" << endl;
+//		printVector(wdisk);
+//		cout << "BDISK" << endl;
+//		printVector(bdisk);
+		
 		if ( count % 2 == 0 ) {
+			
+			printBoard(board);
 			
 			cout << "W TURN (AVAILABLE SPOTS)" << endl;
 			
-			findAvailableSpot(board, "W", wdisk);
-			printVector(avspot);
+			findAvailableSpot(board, availspot, "W", wdisk);
 			
-			cout << "INPUT X , Y" << endl;
-			cin >> x >> y;
+			if ( availspot.empty() ) {
+				cout << "NO MOVE AVAILABLE, MOVING ON" << endl;
+			}
+			else {
+				printVector(availspot);
 			
-			insertNewDisk(board, "W", wdisk, x, y);
+				cout << "INPUT X , Y" << endl;
+				cin >> x >> y;
+				
+				insertNewDisk(board, availspot, "W", wdisk, x, y);
+			}
+			
+			printBoard(board);
 			
 		} else {
 			
-//			bestscore = minimax(board, 3, "B");
+			minimax(board, availspot, 3, "B");
+			
+			findAvailableSpot(board, availspot, "B", bdisk);
+			if ( availspot.empty() ) {
+				cout << "NO MOVE AVAILABLE, MOVING ON" << endl;
+			}
+			else {
+//				printVector(availspot);
+				insertNewDisk(board, availspot, "B", bdisk, bestx, besty);
+				
+				cout << "B FILLED " << bestx << " , " << besty;
+			}
+			
 //			
-//			insertNewDisk(board, "B", bdisk, bestx, besty);
+			printBoard(board);
+			
+//			cout << "B TURN (AVAILABLE SPOTS)" << endl;
 //			
-//			cout << "B FILL " << bestx << " , " << besty;
-			
-			cout << "B TURN (AVAILABLE SPOTS)" << endl;
-			
-			findAvailableSpot(board, "B", bdisk);
-			printVector(avspot);
-			
-			cout << "INPUT X , Y" << endl;
-			cin >> x >> y;
-			
-			insertNewDisk(board, "B", bdisk, x, y);
-			
+//			findAvailableSpot(board, availspot, "B", bdisk);
+//			printVector(availspot);
+//			
+//			cout << "INPUT X , Y" << endl;
+//			cin >> x >> y;
+//			
+//			insertNewDisk(board, "B", bdisk, x, y);
 		}
 		count++;
-		
 		getchar();
 	}
 	
