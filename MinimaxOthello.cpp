@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
-#include <cstring>
+#include <ctime>
 
 using namespace std;
 
@@ -168,29 +168,58 @@ void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<p
 		
 		if ( abs(x - i->first) == abs(y - i->second) ) {
 			
-			smallx = min(x, i->first);
-			smally = min(y, i->second);
-			bigx = max(x, i->first);
-			bigy = max(y, i->second);
-			
-			for ( smallx, smally; smallx!=bigx && smally!=bigy; smallx++, smally++ ) {
+			if ( (x < i->first && y < i->second) || ( x > i->first && y > i->second ) ) { // NORTHWEST & SOUTHEAST
+				smallx = min(x, i->first);
+				smally = min(y, i->second);
+				bigx = max(x, i->first);
+				bigy = max(y, i->second);
 				
-				if ( gameboard[smally][smallx] == enemy ) {
-					
-					gameboard[smally][smallx] = disk;
+				for (smallx, smally; smallx!=bigx && smally!=bigy; smallx++, smally++) {
+				
+					if ( gameboard[smally][smallx] == "-" ) break;
+					else if ( gameboard[smally][smallx] == enemy ) {
+						gameboard[smally][smallx] = disk;
+					}
 				}
 			}
+			if ( x < i->first && y > i->second) { // SOUTHWEST
+				smallx = x;
+				smally = i->second;
+				bigx = i->first;
+				bigy = y;
+				
+				for (bigx, smally; bigx!=smallx && smally!=bigy; bigx--, smally++) {
+					if ( gameboard[smally][bigx] == "-" ) break;
+					else if ( gameboard[smally][bigx] == enemy ) {
+						gameboard[smally][bigx] = disk;
+					}
+				}
+			}
+			if ( x > i->first && y < i->second) { // NORTHEAST
+				smallx = i->first;
+				smally = y;
+				bigx = x;
+				bigy = i->second;
+				
+				for (smallx, bigy; smallx!=bigx && bigy!=smally; smallx++, bigy--) {
+					if ( gameboard[bigy][smallx] == "-" ) break;
+					else if ( gameboard[bigy][smallx] == enemy ) {
+						gameboard[bigy][smallx] = disk;
+					}
+				}
+			}
+			
 		}
 		
-		if ( x == i->first ) {
+		else if ( x == i->first ) {
 			
 			smally = min(y, i->second);
 			bigy = max(y, i->second);
 			
 			for (smally; smally!=bigy; smally++) {
 				
-				if ( gameboard[smally][i->first] == enemy ) {
-					
+				if ( gameboard[smally][i->first] == "-" ) break;
+				else if ( gameboard[smally][i->first] == enemy ) {
 					gameboard[smally][i->first] = disk;
 				}
 			}
@@ -203,8 +232,8 @@ void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<p
 			
 			for (smallx; smallx!=bigx; smallx++) {
 				
-				if ( gameboard[i->second][smallx] == enemy ) {
-					
+				if ( gameboard[i->second][smallx] == "-" ) break;
+				else if ( gameboard[i->second][smallx] == enemy ) {
 					gameboard[i->second][smallx] = disk;
 				}
 			}
@@ -368,9 +397,36 @@ int evaluate(string gameboard[boardsize][boardsize]) {
 	return score;
 }
 
-int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, int depth, string disk) { // STOPPED WORKING
+int evaluateBoard(string gameboard[boardsize][boardsize]) {
 	
-	if ( depth == 0 ) return evaluate(gameboard);
+	int blackpieces;
+	int whitepieces;
+	
+	for (int i=0; i<boardsize; i++) {
+		for (int j=0; j<boardsize; j++) {
+			if( gameboard[i][j] == "B" ) blackpieces++;
+			else if ( gameboard[i][j] == "W" ) whitepieces++;
+		}
+	}
+	
+	int cornerbonus = 10;
+	
+	if ( gameboard[0][0] == "B" ) blackpieces += cornerbonus;
+	if ( gameboard[0][boardsize-2] == "B" ) blackpieces += cornerbonus;
+	if ( gameboard[boardsize-2][0] == "B" ) blackpieces += cornerbonus;
+	if ( gameboard[boardsize-2][boardsize-2] == "B" ) blackpieces += cornerbonus;
+	
+	if ( gameboard[0][0] == "W" ) whitepieces += cornerbonus;
+	if ( gameboard[0][boardsize-2] == "W" ) whitepieces += cornerbonus;
+	if ( gameboard[boardsize-2][0] == "W" ) whitepieces += cornerbonus;
+	if ( gameboard[boardsize-2][boardsize-2] == "W" ) whitepieces += cornerbonus;
+	
+	return whitepieces - blackpieces;
+}
+
+int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, int depth, string disk) { 
+	
+	if ( depth == 0 ) return evaluateBoard(gameboard);
 	
 	else {
 		
@@ -383,7 +439,6 @@ int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 				string newboard[boardsize][boardsize];
 				cloneBoard(newboard, gameboard);
 				vector <pair<int,int>> newavspot;
-				findAvailableSpot(newboard, newavspot, "B", bdisk);
 				
 				auto it = avspot.begin() + i;
 				
@@ -409,7 +464,6 @@ int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 				string newboard[boardsize][boardsize];
 				cloneBoard(newboard, gameboard);
 				vector <pair<int,int>> newavspot;
-				findAvailableSpot(newboard, newavspot, "W", wdisk);
 				
 				auto it = avspot.begin() + i;
 				
@@ -431,7 +485,31 @@ int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 
 }
 
-void greedyTurn() {
+void greedy(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace) {
+	
+	int diskcount;
+	bestscore = 0;
+	findAvailableSpot(gameboard, avspot, disk, diskplace);
+	
+	for (auto i=avspot.begin(); i!=avspot.end(); i++) {
+		
+		string newboard[boardsize][boardsize];
+		cloneBoard(newboard, gameboard);
+		
+		insertNewDisk(newboard, avspot, disk, diskplace, i->first, i->second);
+		
+		for (int i=0; i<boardsize; i++) {
+			for (int j=0; j<boardsize; j++) {
+				if ( newboard[i][j] == disk ) diskcount++;
+			}
+		}
+		
+		if ( bestscore < diskcount - diskplace.size() ) {
+			bestscore = diskcount - diskplace.size();
+			bestx = i->first;
+			besty = i->second;
+		}
+	}
 	
 }
 
@@ -439,70 +517,87 @@ int main() {
 	
 	vector <pair<int,int>> availspot;
 	int count = 1;
-	int x,y;
 	
 	initializeBoard();
 	
 	while (true) {
 		
-//		system("CLS");
-//		gotoxy(0,0);
+		system("CLS");
+		gotoxy(0,0);
 		
-		
-//		cout << "WDISK" << endl;
-//		printVector(wdisk);
-//		cout << "BDISK" << endl;
-//		printVector(bdisk);
 		
 		if ( count % 2 == 0 ) {
 			
+//			printBoard(board);
+//			
+//			cout << "W TURN (AVAILABLE SPOTS)" << endl;
+//			
+//			findAvailableSpot(board, availspot, "W", wdisk);
+//			
+//			if ( availspot.empty() ) {
+//				cout << "NO MOVE AVAILABLE, MOVING ON" << endl;
+//			}
+//			else {
+//				printVector(availspot);
+//			
+//				cout << "INPUT X , Y" << endl;
+//				cin >> x >> y;
+//				
+//				insertNewDisk(board, availspot, "W", wdisk, x, y);
+//			}
+//			
+//			printBoard(board);
+
 			printBoard(board);
-			
-			cout << "W TURN (AVAILABLE SPOTS)" << endl;
-			
-			findAvailableSpot(board, availspot, "W", wdisk);
-			
-			if ( availspot.empty() ) {
-				cout << "NO MOVE AVAILABLE, MOVING ON" << endl;
-			}
-			else {
-				printVector(availspot);
-			
-				cout << "INPUT X , Y" << endl;
-				cin >> x >> y;
-				
-				insertNewDisk(board, availspot, "W", wdisk, x, y);
-			}
-			
-			printBoard(board);
-			
-		} else {
-			
-			minimax(board, availspot, 3, "B");
 			
 			findAvailableSpot(board, availspot, "B", bdisk);
 			if ( availspot.empty() ) {
 				cout << "NO MOVE AVAILABLE, MOVING ON" << endl;
 			}
 			else {
-//				printVector(availspot);
-				insertNewDisk(board, availspot, "B", bdisk, bestx, besty);
+				clock_t begin = clock();
+			
+				greedy(board, availspot, "W", wdisk);
 				
-				cout << "B FILLED " << bestx << " , " << besty;
+				clock_t end = clock();
+				double elapsed_secs = double(end-begin) / CLOCKS_PER_SEC;
+				
+				insertNewDisk(board, availspot, "W", wdisk, bestx, besty);
+				
+				cout << "GREEDY WHITE FILLED " << bestx << " , " << besty << endl;
+				cout << "TIME ELAPSED " << elapsed_secs << " SECONDS" << endl; 
 			}
 			
-//			
+			
 			printBoard(board);
 			
-//			cout << "B TURN (AVAILABLE SPOTS)" << endl;
-//			
-//			findAvailableSpot(board, availspot, "B", bdisk);
-//			printVector(availspot);
-//			
-//			cout << "INPUT X , Y" << endl;
-//			cin >> x >> y;
-//			
-//			insertNewDisk(board, "B", bdisk, x, y);
+		} else {
+			
+			printBoard(board);
+			
+			findAvailableSpot(board, availspot, "B", bdisk);
+			if ( availspot.empty() ) {
+				cout << "NO MOVE AVAILABLE, MOVING ON" << endl;
+			}
+			else {
+				int depth = 5;
+				clock_t begin = clock();
+				
+				minimax(board, availspot, depth, "B");
+				
+				clock_t end = clock();
+				double elapsed_secs = double(end-begin) / CLOCKS_PER_SEC;
+			
+				insertNewDisk(board, availspot, "B", bdisk, bestx, besty);
+				
+				cout << "MINIMAX BLACK FILLED " << bestx << " , " << besty << endl;
+				cout << "DEPTH " << depth << endl;
+				cout << "TIME ELAPSED " << elapsed_secs << " SECONDS" << endl; 
+			}
+			
+			
+			printBoard(board);
+			
 		}
 		count++;
 		getchar();
