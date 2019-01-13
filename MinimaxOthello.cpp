@@ -415,7 +415,13 @@ int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 				
 				auto it = avspot.begin() + i;
 				
-				insertNewDisk(newboard, newavspot, "B", bdisk, it->first, it->second);
+				insertNewDisk(newboard, avspot, "B", bdisk, it->first, it->second);
+				
+//				printBoard(newboard);
+//				printVector(avspot);
+//				cout << bestscore << endl;
+//				cout << it->first << "-" << it->second << endl;
+//				getchar();
 				
 				int v = minimax(newboard, newavspot, depth-1, "W");
 				
@@ -440,7 +446,13 @@ int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 				
 				auto it = avspot.begin() + i;
 				
-				insertNewDisk(newboard, newavspot, "W", wdisk, it->first, it->second);
+				insertNewDisk(newboard, avspot, "W", wdisk, it->first, it->second);
+				
+//				printBoard(newboard);
+//				printVector(avspot);
+//				cout << bestscore << endl;
+//				cout << it->first << "-" << it->second << endl;
+//				getchar();
 				
 				int v = minimax(newboard, newavspot, depth-1, "B");
 				
@@ -499,9 +511,8 @@ int main() {
 	
 	while (true) {
 		
-		system("CLS");
-		gotoxy(0,0);
-		
+//		system("CLS");
+//		gotoxy(0,0);
 		
 		if ( count % 2 == 0 ) {
 			
@@ -557,7 +568,7 @@ int main() {
 				cout << "NO MOVE AVAILABLE, MOVING ON" << endl;
 			}
 			else {
-				int depth = 7;
+				int depth = 3;
 				clock_t begin = clock();
 				
 				minimax(board, availspot, depth, "B");
