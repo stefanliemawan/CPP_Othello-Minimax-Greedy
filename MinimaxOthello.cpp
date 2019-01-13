@@ -18,7 +18,7 @@ using namespace std;
 	vector <pair<int,int>> bdisk;
 	vector <pair<int,int>> wdisk;
 	
-	const int search_depth = 7;
+	const int search_depth = 3;
 	
 	int bestscore;
 	int bestx;
@@ -428,12 +428,14 @@ int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 					
 					int v = minimax(newboard, newavspot, depth-1, "W");
 					
-					if ( v >= bestscore ) {
+					cout << "B" << depth << endl;
+					cout << v << " - " << bestscore << endl;
+					cout << it->first << "-" << it->second << endl;
+					
+					if ( v > bestscore ) {
 						bestscore = v;
-						if ( depth == search_depth ) {
-							bestx = it->first;
-							besty = it->second;
-						}
+						bestx = it->first;
+						besty = it->second;
 					}
 					
 				}
@@ -464,7 +466,11 @@ int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 					
 					int v = minimax(newboard, newavspot, depth-1, "B");
 					
-					if ( v <= bestscore ) {
+					cout << "W" <<depth << endl;
+					cout << v << " - " << bestscore << endl;
+					cout << it->first << "-" << it->second << endl;
+					
+					if ( v < bestscore ) {
 						bestscore = v;
 					}
 					
@@ -573,7 +579,7 @@ int main() {
 			
 		}
 		count++;
-//		getchar();
+		getchar();
 	}
 	printBoard(board);
 	refreshDiskplace(board);
