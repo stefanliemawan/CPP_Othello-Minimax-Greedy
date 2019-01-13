@@ -397,36 +397,9 @@ int evaluate(string gameboard[boardsize][boardsize]) {
 	return score;
 }
 
-int evaluateBoard(string gameboard[boardsize][boardsize]) {
-	
-	int blackpieces;
-	int whitepieces;
-	
-	for (int i=0; i<boardsize; i++) {
-		for (int j=0; j<boardsize; j++) {
-			if( gameboard[i][j] == "B" ) blackpieces++;
-			else if ( gameboard[i][j] == "W" ) whitepieces++;
-		}
-	}
-	
-	int cornerbonus = 10;
-	
-	if ( gameboard[0][0] == "B" ) blackpieces += cornerbonus;
-	if ( gameboard[0][boardsize-2] == "B" ) blackpieces += cornerbonus;
-	if ( gameboard[boardsize-2][0] == "B" ) blackpieces += cornerbonus;
-	if ( gameboard[boardsize-2][boardsize-2] == "B" ) blackpieces += cornerbonus;
-	
-	if ( gameboard[0][0] == "W" ) whitepieces += cornerbonus;
-	if ( gameboard[0][boardsize-2] == "W" ) whitepieces += cornerbonus;
-	if ( gameboard[boardsize-2][0] == "W" ) whitepieces += cornerbonus;
-	if ( gameboard[boardsize-2][boardsize-2] == "W" ) whitepieces += cornerbonus;
-	
-	return whitepieces - blackpieces;
-}
-
 int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, int depth, string disk) { 
 	
-	if ( depth == 0 ) return evaluateBoard(gameboard);
+	if ( depth == 0 ) return evaluate(gameboard);
 	
 	else {
 		
@@ -487,12 +460,12 @@ int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 
 void greedy(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace) {
 	
-	int diskcount;
 	bestscore = 0;
 	findAvailableSpot(gameboard, avspot, disk, diskplace);
 	
 	for (auto i=avspot.begin(); i!=avspot.end(); i++) {
 		
+		int diskcount = 0;
 		string newboard[boardsize][boardsize];
 		cloneBoard(newboard, gameboard);
 		
@@ -504,8 +477,12 @@ void greedy(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 			}
 		}
 		
-		if ( bestscore < diskcount - diskplace.size() ) {
-			bestscore = diskcount - diskplace.size();
+		cout << i->first << "-" << i->second << endl;
+		cout << diskcount << endl;
+		cout << bestscore << endl;
+		
+		if ( bestscore < diskcount ) {
+			bestscore = diskcount;
 			bestx = i->first;
 			besty = i->second;
 		}
@@ -580,7 +557,7 @@ int main() {
 				cout << "NO MOVE AVAILABLE, MOVING ON" << endl;
 			}
 			else {
-				int depth = 5;
+				int depth = 7;
 				clock_t begin = clock();
 				
 				minimax(board, availspot, depth, "B");
