@@ -18,7 +18,7 @@ using namespace std;
 	vector <pair<int,int>> bdisk;
 	vector <pair<int,int>> wdisk;
 	
-	const int search_depth = 3;
+	const int search_depth = 5;
 	
 	int bestscore;
 	int bestx;
@@ -399,81 +399,128 @@ int evaluate(string gameboard[boardsize][boardsize]) { // HEURISTIC FROM https:/
 	return score;
 }
 
-int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, int depth, string disk) { 
-		
+int evaluate2(string gameboard[boardsize][boardsize]) {
 	
-//	if ( depth == 0 ) return evaluate(gameboard);
-//	else {
+	int blackPieces = 0;
+    int whitePiecess = 0;
+
+    for (int i=0; i<boardsize; i++) {
+        for (int j=0; j<boardsize; j++) {
+            if ( gameboard[i][j] == "B" ) {
+                blackPieces++;
+            } else if ( gameboard[i][j] == "W" ) {
+                whitePiecess++;
+            }
+        }
+    }
+
+    int cornerBonus = 10;
+    if (gameboard[0][0] == "B" ) {
+        blackPieces += cornerBonus;
+    }
+    if (gameboard[0][boardsize - 1] == "B" ) {
+        blackPieces += cornerBonus;
+    }
+    if (gameboard[boardsize - 1][0] == "B" ) {
+        blackPieces += cornerBonus;
+    }
+    if (gameboard[boardsize - 1][boardsize - 1] == "B" ) {
+        blackPieces += cornerBonus;
+    }
+    if (gameboard[0][0] == "W" ) {
+        whitePiecess += cornerBonus;
+    }
+    if (gameboard[0][boardsize - 1] == "W" ) {
+        whitePiecess += cornerBonus;
+    }
+    if (gameboard[boardsize - 1][0] == "W" ) {
+        whitePiecess += cornerBonus;
+    }
+    if (gameboard[boardsize - 1][boardsize - 1] == "W" ) {
+        whitePiecess += cornerBonus;
+    }
+    return whitePiecess - blackPieces;
+	
+}
+
+int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, int depth, string disk) {
+
 		if ( disk == "B" ) {
 			//max
-			if ( depth == 0 ) return evaluate(gameboard);
+			if ( depth == 1 ) return evaluate(gameboard);
 			else {
 				
-				bestscore = numeric_limits<int>::min();
 				findAvailableSpot(gameboard, avspot, "B", bdisk);
-				for (int i=0; i<avspot.size(); i++) {
+				
+				if (avspot.empty()) return evaluate(gameboard);
+				else {
 					
-					string newboard[boardsize][boardsize];
-					cloneBoard(newboard, gameboard);
-					vector <pair<int,int>> newavspot;
+					bestscore = numeric_limits<int>::min();
+					for (int i=0; i<avspot.size(); i++) {
+						
+						string newboard[boardsize][boardsize];
+						cloneBoard(newboard, gameboard);
+						vector <pair<int,int>> newavspot;
+						
+						auto it = avspot.begin() + i;
+						
+						insertNewDisk(newboard, avspot, "B", bdisk, it->first, it->second);
+						
+						int v = minimax(newboard, newavspot, depth-1, "W");
+						
+//						cout << "B" << depth << endl;
+//						cout << v << " & " << bestscore << endl;
+//						cout << it->first << "-" << it->second << endl << endl;
+						
+						
+						if ( v >= bestscore ) {
+							bestscore = v;
+							if ( depth ==  search_depth ) {
+								bestx = it->first;
+								besty = it->second;
+							}
+						}
 					
-					auto it = avspot.begin() + i;
-					
-					insertNewDisk(newboard, avspot, "B", bdisk, it->first, it->second);
-					
-	//				printBoard(newboard);
-	//				cout << depth << endl;
-	//				cout << it->first << "-" << it->second << endl;
-	//				getchar();
-					
-					int v = minimax(newboard, newavspot, depth-1, "W");
-					
-					cout << "B" << depth << endl;
-					cout << v << " - " << bestscore << endl;
-					cout << it->first << "-" << it->second << endl;
-					
-					if ( v > bestscore ) {
-						bestscore = v;
-						bestx = it->first;
-						besty = it->second;
 					}
 					
 				}
+				
 				return bestscore;
 			}
 		}
 		else if ( disk == "W" ) {
 			//min
-			if ( depth == 0 ) return -evaluate(gameboard);
+			if ( depth == 1 ) return evaluate(gameboard);
 			else {
 				
-				bestscore = numeric_limits<int>::max();
+				
 				findAvailableSpot(gameboard, avspot, "W", wdisk);
-				for (int i=0; i<avspot.size(); i++) {
+				
+				if (avspot.empty()) return evaluate(gameboard);
+				else {
 					
-					string newboard[boardsize][boardsize];
-					cloneBoard(newboard, gameboard);
-					vector <pair<int,int>> newavspot;
-					
-					auto it = avspot.begin() + i;
-					
-					insertNewDisk(newboard, avspot, "W", wdisk, it->first, it->second);
-					
-	//				printBoard(newboard);
-	//				cout << depth << endl;
-	//				cout << it->first << "-" << it->second << endl;
-	//				getchar();
-					
-					int v = minimax(newboard, newavspot, depth-1, "B");
-					
-					cout << "W" <<depth << endl;
-					cout << v << " - " << bestscore << endl;
-					cout << it->first << "-" << it->second << endl;
-					
-					if ( v < bestscore ) {
-						bestscore = v;
+					bestscore = numeric_limits<int>::max();
+					for (int i=0; i<avspot.size(); i++) {
+						
+						string newboard[boardsize][boardsize];
+						cloneBoard(newboard, gameboard);
+						vector <pair<int,int>> newavspot;
+						
+						auto it = avspot.begin() + i;
+						
+						insertNewDisk(newboard, avspot, "W", wdisk, it->first, it->second);
+						
+						int v = minimax(newboard, newavspot, depth-1, "B");
+						
+//						cout << "W" << depth << endl;
+//						cout << v << " & " << bestscore << endl;
+//						cout << it->first << "-" << it->second << endl << endl;
+						
+						if ( v <= bestscore ) {
+							bestscore = v;
+						}
+						
 					}
-					
 				}
 				return bestscore;
 			}
@@ -510,9 +557,23 @@ void greedy(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 	
 }
 
+void randomize(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace) {
+	
+	findAvailableSpot(gameboard, avspot, disk, diskplace);
+	
+	srand (time(NULL));
+	int i = rand() % avspot.size();
+	auto it = avspot.begin() + i;
+	
+	insertNewDisk(gameboard, avspot, disk, diskplace, it->first, it->second);
+	
+}
+
 int main() {
 	
 	vector <pair<int,int>> availspot;
+	int x;
+	int y;
 	int count = 1;
 	int nomovecnt = 0;
 	
@@ -523,13 +584,15 @@ int main() {
 		system("CLS");
 		gotoxy(0,0);
 		
+		refreshDiskplace(board);
+		
 		if ( nomovecnt >= 2 ) break;
 		
 		if ( count % 2 == 0 ) {
 
 			printBoard(board);
 			
-			findAvailableSpot(board, availspot, "B", bdisk);
+			findAvailableSpot(board, availspot, "W", wdisk);
 			if ( availspot.empty() ) {
 				cout << "NO MOVE AVAILABLE, MOVING ON" << endl;
 				nomovecnt++;
@@ -537,15 +600,23 @@ int main() {
 			else {
 				clock_t begin = clock();
 			
-				greedy(board, availspot, "W", wdisk);
+				randomize(board, availspot, "W", wdisk);
 				
 				clock_t end = clock();
 				double elapsed_secs = double(end-begin) / CLOCKS_PER_SEC;
 				refreshDiskplace(board);
 				insertNewDisk(board, availspot, "W", wdisk, bestx, besty);
+				nomovecnt = 0;
 				
 				cout << "GREEDY WHITE FILLED " << bestx << " , " << besty << endl;
 				cout << "TIME ELAPSED " << elapsed_secs << " SECONDS" << endl; 
+				
+//				cout << "W TURN (AVAILABLE SPOT)" << endl;
+//				printVector(availspot);
+//				cin >> x >> y;
+//				
+//				insertNewDisk(board, availspot, "W", wdisk, x, y);
+				
 			}
 			
 			printBoard(board);
@@ -568,10 +639,12 @@ int main() {
 				double elapsed_secs = double(end-begin) / CLOCKS_PER_SEC;
 				refreshDiskplace(board);
 				insertNewDisk(board, availspot, "B", bdisk, bestx, besty);
+				nomovecnt = 0;
 				
 				cout << "MINIMAX BLACK FILLED " << bestx << " , " << besty << endl;
 				cout << "DEPTH " << search_depth << endl;
 				cout << "TIME ELAPSED " << elapsed_secs << " SECONDS" << endl; 
+				cout << "BEST SCORE = " << bestscore << endl;
 			}
 			
 			
@@ -579,7 +652,7 @@ int main() {
 			
 		}
 		count++;
-		getchar();
+//		getchar();
 	}
 	printBoard(board);
 	refreshDiskplace(board);
