@@ -18,7 +18,7 @@ using namespace std;
 	vector <pair<int,int>> bdisk;
 	vector <pair<int,int>> wdisk;
 	
-	const int search_depth = 6; // Modify Depth for Optimalization
+	const int search_depth = 8; // Modify Depth for Optimalization
 	
 	int bbestscore;
 	int wbestscore;
@@ -170,11 +170,11 @@ void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<p
 		
 		if ( abs(x - i->first) == abs(y - i->second) ) {
 			
-			if ( (x < i->first && y < i->second) || ( x > i->first && y > i->second ) ) { // NORTHWEST & SOUTHEAST
-				smallx = min(x, i->first);
-				smally = min(y, i->second);
-				bigx = max(x, i->first);
-				bigy = max(y, i->second);
+			if (x < i->first && y < i->second) { // SOUTHEAST
+				smallx = x;
+				smally = y;
+				bigx = i->first;
+				bigy = i->second;
 				
 				for (smallx, smally; smallx!=bigx && smally!=bigy; smallx++, smally++) {
 				
@@ -184,29 +184,45 @@ void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<p
 					}
 				}
 			}
-			if ( x < i->first && y > i->second) { // SOUTHWEST
+			
+			if ( x > i->first && y > i->second )  { // NORTHWEST
+				smallx = i->first;
+				smally = i->second;
+				bigx = x;
+				bigy = y;
+				
+				for (bigx, bigy; bigx!=smallx && bigy!=smally; bigx--, bigy--) {
+				
+					if ( gameboard[bigy][bigx] == "-" ) break;
+					else if ( gameboard[bigy][bigx] == enemy ) {
+						gameboard[bigy][bigx] = disk;
+					}
+				}
+			}
+			
+			if ( x < i->first && y > i->second) { // NORTHEAST
 				smallx = x;
 				smally = i->second;
 				bigx = i->first;
 				bigy = y;
 				
-				for (bigx, smally; bigx!=smallx && smally!=bigy; bigx--, smally++) {
-					if ( gameboard[smally][bigx] == "-" ) break;
-					else if ( gameboard[smally][bigx] == enemy ) {
-						gameboard[smally][bigx] = disk;
+				for (smallx, bigy; smallx!=bigx && bigy!=smally; smallx++, bigy--) {
+					if ( gameboard[bigy][smallx] == "-" ) break;
+					else if ( gameboard[bigy][smallx] == enemy ) {
+						gameboard[bigy][smallx] = disk;
 					}
 				}
 			}
-			if ( x > i->first && y < i->second) { // NORTHEAST
+			if ( x > i->first && y < i->second) { // SOUTHWEST
 				smallx = i->first;
 				smally = y;
 				bigx = x;
 				bigy = i->second;
 				
-				for (smallx, bigy; smallx!=bigx && bigy!=smally; smallx++, bigy--) {
-					if ( gameboard[bigy][smallx] == "-" ) break;
-					else if ( gameboard[bigy][smallx] == enemy ) {
-						gameboard[bigy][smallx] = disk;
+				for (bigx, smally; bigx!=smallx && smally!=bigy; bigx--, smally++) {
+					if ( gameboard[smally][bigx] == "-" ) break;
+					else if ( gameboard[smally][bigx] == enemy ) {
+						gameboard[smally][bigx] = disk;
 					}
 				}
 			}
@@ -694,7 +710,7 @@ int main() {
 			else {
 				clock_t begin = clock();
 			
-				randomize(board, availspot, "W", wdisk);
+				greedy(board, availspot, "W", wdisk);
 				
 				clock_t end = clock();
 				
@@ -704,8 +720,8 @@ int main() {
 				insertNewDisk(board, availspot, "W", wdisk, bestx, besty);
 				nomovecnt = 0;
 				
-				cout << "RANDOM WHITE FILLED " << bestx << " , " << besty << endl;
-//				cout << "GREEDY WHITE FILLED " << bestx << " , " << besty << endl;
+//				cout << "RANDOM WHITE FILLED " << bestx << " , " << besty << endl;
+				cout << "GREEDY WHITE FILLED " << bestx << " , " << besty << endl;
 				cout << "TIME ELAPSED " << elapsed_secs << " SECONDS" << endl; 
 				
 //				cout << "W TURN (AVAILABLE SPOT)" << endl;
@@ -750,7 +766,7 @@ int main() {
 			
 		}
 		count++;
-		getchar();
+//		getchar();
 	}
 	printBoard(board);
 	refreshDiskplace(board);
