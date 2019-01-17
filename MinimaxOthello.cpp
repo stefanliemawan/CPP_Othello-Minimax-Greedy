@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <limits>
 #include <ctime>
-
+#include <fstream>
 using namespace std;
 
 	// MAX == BLACK
@@ -55,7 +55,12 @@ void initializeBoard() { // Create Board
 
 void printBoard(string gameboard[boardsize][boardsize]) {
 	cout << endl << endl;
+	//to print the numbers on x
+	cout << setw(7) << 0 << setw(6) << 1 << setw(6) << 2 << setw(6) << 3 << setw(6) << 4
+	<< setw(6) << 5 << setw(6) << 6 << setw(6) << 7 << endl << endl;
 	for (int i=0; i<boardsize; i++) {
+		//to print y axis
+		cout << i << " ";
 		for (int j=0; j<boardsize; j++) {
 			cout << setw(5) << gameboard[i][j] << " ";
 		}
@@ -680,6 +685,9 @@ void randomize(string gameboard[boardsize][boardsize], vector<pair<int,int>> &av
 }
 
 int main() {
+	//to obtain the elapsed time per move needed by each algorithm
+	fstream getData;
+	getData.open("time_elapse_per_move.txt", fstream::out);
 	
 	vector <pair<int,int>> availspot;
 	int x;
@@ -723,6 +731,7 @@ int main() {
 //				cout << "RANDOM WHITE FILLED " << bestx << " , " << besty << endl;
 				cout << "GREEDY WHITE FILLED " << bestx << " , " << besty << endl;
 				cout << "TIME ELAPSED " << elapsed_secs << " SECONDS" << endl; 
+				getData << "Greedy " << elapsed_secs << " seconds\n\n";
 				
 //				cout << "W TURN (AVAILABLE SPOT)" << endl;
 //				printVector(availspot);
@@ -759,6 +768,7 @@ int main() {
 				cout << "MINIMAX BLACK FILLED " << bestx << " , " << besty << endl;
 				cout << "DEPTH " << search_depth << endl;
 				cout << "TIME ELAPSED " << elapsed_secs << " SECONDS" << endl;
+				getData << "Minimax " << elapsed_secs << " seconds\n";
 			}
 			
 			
@@ -767,6 +777,7 @@ int main() {
 		}
 		count++;
 //		getchar();
+		system("pause");
 	}
 	printBoard(board);
 	refreshDiskplace(board);
