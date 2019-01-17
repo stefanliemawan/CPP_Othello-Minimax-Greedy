@@ -18,19 +18,19 @@ using namespace std;
 	vector <pair<int,int>> bdisk;
 	vector <pair<int,int>> wdisk;
 	
-	const int search_depth = 5;
+	const int search_depth = 7; // Modify Depth for Optimalization
 	
 	int bestscore;
 	int bestx;
 	int besty;
 
-void gotoxy(short x, short y) {
+void gotoxy(short x, short y) { // Rewrite Function
   COORD coord = { x, y };  
   SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),coord);
   
 }
 
-void initializeBoard() {
+void initializeBoard() { // Create Board
 	
 	for (int i=0; i<boardsize; i++) {
 		for (int j=0; j<boardsize; j++) {
@@ -70,7 +70,7 @@ void printVector(vector<pair<int,int>> vect) {
 	
 }
 
-string checkEnemy(string disk) {
+string checkEnemy(string disk) { // Chekc Color and Return Enemy Color
 	if ( disk == "W" ) {
 		return "B";
 		
@@ -79,7 +79,7 @@ string checkEnemy(string disk) {
 	}
 }
 
-void cloneBoard(string newboard[boardsize][boardsize], string gameboard[boardsize][boardsize]) {
+void cloneBoard(string newboard[boardsize][boardsize], string gameboard[boardsize][boardsize]) { // Clone Board
 	
 //	memcpy( newboard, gameboard, boardsize * boardsize * sizeof(gameboard) );
 
@@ -90,7 +90,7 @@ void cloneBoard(string newboard[boardsize][boardsize], string gameboard[boardsiz
 	}
 }
 
-void refreshDiskplace(string gameboard[boardsize][boardsize]) {
+void refreshDiskplace(string gameboard[boardsize][boardsize]) { // Reinput Black and White Disk into Vector
 	
 	wdisk.clear();
 	bdisk.clear();
@@ -109,7 +109,7 @@ void refreshDiskplace(string gameboard[boardsize][boardsize]) {
 	
 }
 
-void checkDirection(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, int y, int x, int vy, int vx) {
+void checkDirection(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, int y, int x, int vy, int vx) { // Check Specific Direction to Find Friend Disk
 	
 	string enemy = checkEnemy(disk);
 	
@@ -122,10 +122,9 @@ void checkDirection(string gameboard[boardsize][boardsize], vector<pair<int,int>
 		y += vy;
 		checkDirection(gameboard, avspot, disk,y,x,vy,vx);
 	}
-//	cout << "CHECK DIRECTION DONE" << endl;
 }
 
-void findAvailableSpot(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector <pair<int,int>> &diskplace) {
+void findAvailableSpot(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector <pair<int,int>> &diskplace) { // Find the Possible Next Move
 	
 	avspot.clear();
 	refreshDiskplace(gameboard);
@@ -155,9 +154,7 @@ void findAvailableSpot(string gameboard[boardsize][boardsize], vector<pair<int,i
 //	cout << "FIND AVAILABLE SPOT DONE" << endl;
 }
 
-void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<pair<int,int>> &diskplace, int x, int y) {
-	
-	//check diskplace, connect, turn
+void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<pair<int,int>> &diskplace, int x, int y) { // Flip the Disk Between
 	
 	int smallx;
 	int smally;
@@ -241,10 +238,10 @@ void turnEnemyDisk(string gameboard[boardsize][boardsize], string disk, vector<p
 			}
 		}
 	}
-//	cout << "TURN ENEMY DISK DONE" << endl;
+	
 }
 
-void insertNewDisk(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace, int x, int y) { 
+void insertNewDisk(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace, int x, int y) { // Insert The Disk
 	
 	string enemy = checkEnemy(disk);
 	
@@ -255,7 +252,6 @@ void insertNewDisk(string gameboard[boardsize][boardsize], vector<pair<int,int>>
 		}
 	}
 	
-//	cout << "INSERT NEW DISK DONE" << endl;
 }
 
 int evaluate(string gameboard[boardsize][boardsize]) { // HEURISTIC FROM https://kartikkukreja.wordpress.com/2013/03/30/heuristic-function-for-reversiothello/
@@ -399,7 +395,7 @@ int evaluate(string gameboard[boardsize][boardsize]) { // HEURISTIC FROM https:/
 	return score;
 }
 
-int evaluate2(string gameboard[boardsize][boardsize]) {
+int evaluate2(string gameboard[boardsize][boardsize]) { // SIMPLER HEURISTIC From Stack Overflow
 	
 	int blackPieces = 0;
     int whitePiecess = 0;
@@ -443,7 +439,7 @@ int evaluate2(string gameboard[boardsize][boardsize]) {
 	
 }
 
-int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, int depth, string disk) {
+int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, int depth, string disk) { // Minimax Implementation
 
 		if ( disk == "B" ) {
 			//max
@@ -529,7 +525,7 @@ int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 
 }
 
-void greedy(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace) {
+void greedy(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace) { // Greedy Implementation
 	
 	bestscore = 0;
 	findAvailableSpot(gameboard, avspot, disk, diskplace);
@@ -557,7 +553,7 @@ void greedy(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 	
 }
 
-void randomize(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace) {
+void randomize(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace) { // Randomize Play Implementation
 	
 	findAvailableSpot(gameboard, avspot, disk, diskplace);
 	
@@ -652,7 +648,7 @@ int main() {
 			
 		}
 		count++;
-//		getchar();
+		getchar();
 	}
 	printBoard(board);
 	refreshDiskplace(board);
