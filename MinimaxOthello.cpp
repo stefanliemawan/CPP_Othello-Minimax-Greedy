@@ -18,9 +18,12 @@ using namespace std;
 	vector <pair<int,int>> bdisk;
 	vector <pair<int,int>> wdisk;
 	
-	const int search_depth = 7; // Modify Depth for Optimalization
+	const int search_depth = 6; // Modify Depth for Optimalization
 	
+	int bbestscore;
+	int wbestscore;
 	int bestscore;
+	
 	int bestx;
 	int besty;
 
@@ -525,6 +528,98 @@ int minimax(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspo
 
 }
 
+int minimaxAB(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, int depth, string disk) { // Minimax Implementation with Alpha Beta Cutoff
+
+		if ( disk == "B" ) {
+			//max
+			if ( depth == 1 ) return evaluate(gameboard);
+			else {
+				
+				findAvailableSpot(gameboard, avspot, "B", bdisk);
+				
+				if (avspot.empty()) return evaluate(gameboard);
+				else {
+					
+					bbestscore = numeric_limits<int>::min();
+					for (int i=0; i<avspot.size(); i++) {
+						
+						string newboard[boardsize][boardsize];
+						cloneBoard(newboard, gameboard);
+						vector <pair<int,int>> newavspot;
+						
+						auto it = avspot.begin() + i;
+						
+						insertNewDisk(newboard, avspot, "B", bdisk, it->first, it->second);
+						
+						int v = minimaxAB(newboard, newavspot, depth-1, "W");
+						
+//						cout << "B" << depth << endl;
+//						cout << v << " & " << bbestscore << endl;
+//						cout << it->first << "-" << it->second << endl << endl;
+						
+						if ( v >= bbestscore ) {
+							
+							if ( v > wbestscore ) break;
+							else bbestscore = v;
+							
+							if ( depth ==  search_depth ) {
+								bestx = it->first;
+								besty = it->second;
+							}
+							
+						}
+					
+					}
+					
+				}
+				
+				return bbestscore;
+			}
+		}
+		else if ( disk == "W" ) {
+			//min
+			if ( depth == 1 ) return evaluate(gameboard);
+			else {
+				
+				
+				findAvailableSpot(gameboard, avspot, "W", wdisk);
+				
+				if (avspot.empty()) return evaluate(gameboard);
+				else {
+					
+					wbestscore = numeric_limits<int>::max();
+					for (int i=0; i<avspot.size(); i++) {
+						
+						string newboard[boardsize][boardsize];
+						cloneBoard(newboard, gameboard);
+						vector <pair<int,int>> newavspot;
+						
+						auto it = avspot.begin() + i;
+						
+						insertNewDisk(newboard, avspot, "W", wdisk, it->first, it->second);
+						
+						int v = minimaxAB(newboard, newavspot, depth-1, "B");
+						
+//						cout << "W" << depth << endl;
+//						cout << v << " & " << wbestscore << endl;
+//						cout << it->first << "-" << it->second << endl << endl;
+
+						if ( v <= wbestscore ) {
+							
+							if ( v < bbestscore ) break;
+							else wbestscore = v;
+							
+						}
+						
+					}
+				}
+				return wbestscore;
+			}
+		}
+//	}
+
+}
+
 void greedy(string gameboard[boardsize][boardsize], vector<pair<int,int>> &avspot, string disk, vector<pair<int,int>> &diskplace) { // Greedy Implementation
 	
 	bestscore = 0;
@@ -561,7 +656,10 @@ void randomize(string gameboard[boardsize][boardsize], vector<pair<int,int>> &av
 	int i = rand() % avspot.size();
 	auto it = avspot.begin() + i;
 	
-	insertNewDisk(gameboard, avspot, disk, diskplace, it->first, it->second);
+	bestx = it->first;
+	besty = it->second;
+	
+	insertNewDisk(gameboard, avspot, disk, diskplace, bestx, besty);
 	
 }
 
@@ -599,12 +697,15 @@ int main() {
 				randomize(board, availspot, "W", wdisk);
 				
 				clock_t end = clock();
+				
 				double elapsed_secs = double(end-begin) / CLOCKS_PER_SEC;
+				
 				refreshDiskplace(board);
 				insertNewDisk(board, availspot, "W", wdisk, bestx, besty);
 				nomovecnt = 0;
 				
-				cout << "GREEDY WHITE FILLED " << bestx << " , " << besty << endl;
+				cout << "RANDOM WHITE FILLED " << bestx << " , " << besty << endl;
+//				cout << "GREEDY WHITE FILLED " << bestx << " , " << besty << endl;
 				cout << "TIME ELAPSED " << elapsed_secs << " SECONDS" << endl; 
 				
 //				cout << "W TURN (AVAILABLE SPOT)" << endl;
@@ -629,18 +730,19 @@ int main() {
 			else {
 				clock_t begin = clock();
 				
-				minimax(board, availspot, search_depth, "B");
+				minimaxAB(board, availspot, search_depth, "B");
 				
 				clock_t end = clock();
+				
 				double elapsed_secs = double(end-begin) / CLOCKS_PER_SEC;
+				
 				refreshDiskplace(board);
 				insertNewDisk(board, availspot, "B", bdisk, bestx, besty);
 				nomovecnt = 0;
 				
 				cout << "MINIMAX BLACK FILLED " << bestx << " , " << besty << endl;
 				cout << "DEPTH " << search_depth << endl;
-				cout << "TIME ELAPSED " << elapsed_secs << " SECONDS" << endl; 
-				cout << "BEST SCORE = " << bestscore << endl;
+				cout << "TIME ELAPSED " << elapsed_secs << " SECONDS" << endl;
 			}
 			
 			
